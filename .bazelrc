@@ -1,0 +1,10 @@
+# Trigger rebuild of everything when the underlying builder image changes
+build --action_env=BUILD_FROM_IMAGE
+
+# Use C++17
+build --cxxopt="-std=c++17"
+
+# Common Build Configurations
+common --compilation_mode opt --copt="-O3"
+common --build_tag_filters=-quality,-gpu
+common:debug --compilation_mode dbg --copt="-O0"
