@@ -1,0 +1,365 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Compilation Database",
+            "detail": "Builds the compilation database used by Intellisense for optimization mode",
+            "type": "shell",
+            "command": "bazel run ${input:pickRefreshCompileCommandsTarget}",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Build Compilation Database (debug)",
+            "detail": "Builds the compilation database used by Intellisense for debug mode",
+            "type": "shell",
+            "command": "bazel run ${input:pickRefreshCompileCommandsTarget} -- --config=debug",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Bazel Clean",
+            "detail": "Deletes the output directories for all Bazel build configurations and resets internal caches",
+            "type": "shell",
+            "command": "bazel clean",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Build Target",
+            "detail": "Prompts for selection of a target and builds it in optimization mode",
+            "type": "shell",
+            "command": "bazel build ${input:pickBazelTarget}",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build Target (Debug)",
+            "detail": "Prompts for selection of a target and builds it in debug mode",
+            "type": "shell",
+            "command": "bazel build --config=debug ${input:pickBazelTarget}",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build Unit Test",
+            "detail": "Prompts for selection of a test target and builds it in fastbuild mode",
+            "type": "shell",
+            "command": "bazel build ${input:pickBazelTest}",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build Unit Test (Debug)",
+            "detail": "Prompts for selection of a test target and builds it in debug mode",
+            "type": "shell",
+            "command": "bazel build --config=debug ${input:pickBazelTest}",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Run Unit Test",
+            "detail": "Prompts for selection of a test target and runs it in optimized mode",
+            "type": "shell",
+            "command": "bazel test ${input:pickBazelTest}",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": "test"
+        },
+        {
+            "label": "Run Unit Test (Debug)",
+            "detail": "Prompts for selection of a test target and runs it in debug mode",
+            "type": "shell",
+            "command": "bazel test --config=debug ${input:pickBazelTest}",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": "test"
+        },
+        {
+            "label": "Run Binary",
+            "detail": "Prompts for selection of a binary and runs it in optimization mode",
+            "type": "shell",
+            "command": "bazel run ${input:pickBazelBinary}",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": "none",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Run Binary (Debug)",
+            "detail": "Prompts for selection of a binary and runs it in debug mode",
+            "type": "shell",
+            "command": "bazel run --config=debug ${input:pickBazelBinary}",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": "none",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Cleanup Launch Script",
+            "hide": true,
+            "type": "shell",
+            "command": "rm -f /tmp/debug_launch",
+            "presentation": {
+                "close": true,
+                "panel": "dedicated",
+                "reveal": "silent",
+                "revealProblems": "onProblem"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+    ],
+    "inputs": [
+        {
+            // Prompts the user to select a refresh compile commands target and stores the target name in the remember store as 'selectedRefreshCompileCommandsTarget'
+            "id": "pickRefreshCompileCommandsTarget",
+            "type": "command",
+            "command": "extension.commandvariable.pickStringRemember",
+            "args": {
+                "description": "Choose a target",
+                "key": "selectedRefreshCompileCommandsTarget",
+                "rememberTransformed": true,
+                "options": [
+                    { "label": "Previous Target", "value": "${command:selectedRefreshCompileCommandsTarget}", "description": "${command:selectedRefreshCompileCommandsTarget}" },
+                    { "label": "Select Target", "value": "${command:bazelTargets}", "description": "NOTE: It may take some time for the selection list to be displayed" }
+                ],
+                "command": {
+                    "selectedRefreshCompileCommandsTarget": {
+                        "command": "extension.commandvariable.transform",
+                        "args": {
+                            "text": "${remember:selectedRefreshCompileCommandsTarget}",
+                            "find": "^(I don't remember|No default value has been set in config...)$",
+                            "replace": "${command:defaultRefreshCompileCommandsTarget}",
+                            "command": {
+                                "defaultRefreshCompileCommandsTarget": {
+                                    "command": "extension.commandvariable.config.expression",
+                                    "args": {
+                                        "configVariable": "torc.bazel",
+                                        "expression": "content.defaultRefreshCompileCommandsTarget",
+                                        "default": "No default value has been set in config..."
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "bazelTargets": {
+                        "command": "shellCommand.execute",
+                        "args": {
+                            "command": "targets=$(jsonlint -Sf .vscode/settings.json | jq -r '.[\"torc.bazel\"].bazelTestQuickPicks[]? // empty' | paste -sd+ -) && if [ -n \"$targets\" ]; then bazel --output_base=/tmp/code/bazel query \"kind(py_binary, attr(name, \"refresh_compile_commands\", $targets))\" ; fi ; bazel --output_base=/tmp/code/bazel query 'kind(py_binary, attr(name, \"refresh_compile_commands\", //...))'",
+                            "cwd": "${workspaceFolder}"
+                        }
+                    }
+               }
+            }
+        },
+        {
+            // Prompts the user to select a target and stores the target name in the remember store as 'selectedBazelTarget'
+            "id": "pickBazelTarget",
+            "type": "command",
+            "command": "extension.commandvariable.pickStringRemember",
+            "args": {
+                "description": "Choose a target",
+                "key": "selectedBazelTarget",
+                "rememberTransformed": true,
+                "options": [
+                    { "label": "Previous Target", "value": "${command:selectedBazelTarget}", "description": "${command:selectedBazelTarget}" },
+                    { "label": "Select Target", "value": "${command:bazelTargets}", "description": "NOTE: It may take some time for the selection list to be displayed" }
+                ],
+                "command": {
+                    "selectedBazelTarget": {
+                        "command": "extension.commandvariable.transform",
+                        "args": {
+                            "text": "${remember:selectedBazelTarget}",
+                            "find": "^(I don't remember|No default value has been set in config...)$",
+                            "replace": "${command:defaultBazelTarget}",
+                            "command": {
+                                "defaultBazelTarget": {
+                                    "command": "extension.commandvariable.config.expression",
+                                    "args": {
+                                        "configVariable": "torc.bazel",
+                                        "expression": "content.defaultBazelTarget",
+                                        "default": "No default value has been set in config..."
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "bazelTargets": {
+                        "command": "shellCommand.execute",
+                        "args": {
+                            "command": "echo '//...' ; targets=$(jsonlint -Sf .vscode/settings.json | jq -r '.[\"torc.bazel\"].bazelTargetQuickPicks[]? // empty' | paste -sd+ -) && if [ -n \"$targets\" ]; then bazel --output_base=/tmp/code/bazel query \"$targets\" ; fi ; bazel --output_base=/tmp/code/bazel query '//...'",
+                            "cwd": "${workspaceFolder}"
+                        }
+                    }
+               }
+            }
+        },
+        {
+            // Prompts the user to select a binary target and stores the target name in the remember store as 'selectedBazelBinary'
+            "id": "pickBazelBinary",
+            "type": "command",
+            "command": "extension.commandvariable.pickStringRemember",
+            "args": {
+                "description": "Choose a binary",
+                "key": "selectedBazelBinary",
+                "rememberTransformed": true,
+                "options": [
+                    { "label": "Previous Binary", "value": "${command:selectedBazelBinary}", "description": "${command:selectedBazelBinary}" },
+                    { "label": "Select Binary", "value": "${command:bazelBinaries}", "description": "NOTE: It may take some time for the selection list to be displayed" }
+                ],
+                "command": {
+                    "selectedBazelBinary": {
+                        "command": "extension.commandvariable.transform",
+                        "args": {
+                            "text": "${remember:selectedBazelBinary}",
+                            "find": "^(I don't remember|No default value has been set in config...)$",
+                            "replace": "${command:defaultBazelBinary}",
+                            "command": {
+                                "defaultBazelBinary": {
+                                    "command": "extension.commandvariable.config.expression",
+                                    "args": {
+                                        "configVariable": "torc.bazel",
+                                        "expression": "content.defaultBazelBinary",
+                                        "default": "No default value has been set in config..."
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "bazelBinaries": {
+                        "command": "shellCommand.execute",
+                        "args": {
+                            "command": "targets=$(jsonlint -Sf .vscode/settings.json | jq -r '.[\"torc.bazel\"].bazelBinaryQuickPicks[]? // empty' | paste -sd+ -) && if [ -n \"$targets\" ]; then   bazel --output_base=/tmp/code/bazel query \"kind(.*_binary, $targets) - attr(deps, @ros_genpy//:genpy, $targets) - attr(linkshared, 1, $targets) - attr(generator_name, node_modules, $targets)\" ; fi ; bazel --output_base=/tmp/code/bazel query 'kind(.*_binary, //...) - attr(deps, @ros_genpy//:genpy, //...) - attr(linkshared, 1, //...) - attr(generator_name, node_modules, //...)'",
+                            "cwd": "${workspaceFolder}"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            // Provides access to the previously selected bazel binary from the remember store
+            "id": "selectedBazelBinary",
+            "type": "command",
+            "command": "extension.commandvariable.transform",
+            "args": {
+                "text": "${remember:selectedBazelBinary}"
+            }
+        },
+        {
+            // Prompts the user to select a test target and stores the target name in the remember store as 'selectedBazelTest'
+            "id": "pickBazelTest",
+            "type": "command",
+            "command": "extension.commandvariable.pickStringRemember",
+            "args": {
+                "description": "Choose a test",
+                "key": "selectedBazelTest",
+                "rememberTransformed": true,
+                "options": [
+                    { "label": "Previous Test", "value": "${command:selectedBazelTest}", "description": "${command:selectedBazelTest}" },
+                    { "label": "Select Test", "value": "${command:bazelTests}", "description": "NOTE: It may take some time for the selection list to be displayed" }
+                ],
+                "command": {
+                    "selectedBazelTest": {
+                        "command": "extension.commandvariable.transform",
+                        "args": {
+                            "text": "${remember:selectedBazelTest}",
+                            "find": "^(I don't remember|No default value has been set in config...)$",
+                            "replace": "${command:defaultBazelTest}",
+                            "command": {
+                                "defaultBazelTest": {
+                                    "command": "extension.commandvariable.config.expression",
+                                    "args": {
+                                        "configVariable": "torc.bazel",
+                                        "expression": "content.defaultBazelTest",
+                                        "default": "No default value has been set in config..."
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "bazelTests": {
+                        "command": "shellCommand.execute",
+                        "args": {
+                        "command": "targets=$(jsonlint -Sf .vscode/settings.json | jq -r '.[\"torc.bazel\"].bazelTestQuickPicks[]? // empty' | paste -sd+ -) && if [ -n \"$targets\" ]; then bazel --output_base=/tmp/code/bazel query \"kind(cc_test, $targets)\" ; fi ; echo '//...' ; bazel --output_base=/tmp/code/bazel query 'kind(cc_test, //...)'",
+                        "cwd": "${workspaceFolder}"
+                        }
+                    }
+               }
+            }
+        }
+    ]
+}

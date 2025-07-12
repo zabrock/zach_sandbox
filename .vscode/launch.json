@@ -1,0 +1,130 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Debug Bazel Binary",
+            "preLaunchTask": "Build Binary Run Script (Debug)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/bin/bash",
+            "args": ["/tmp/debug_launch"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerArgs": "-ex \"set substitute-path /proc/self/cwd/. /proc/self/cwd\"",
+            "sourceFileMap": {
+                "/proc/self/cwd": "${workspaceFolder}",
+                "/proc/self/cwd/external" : "${workspaceFolder}/bazel-${workspaceFolderBasename}/external"
+            },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Attach Bazel Binary",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/${input:bazelBinaryPath}",
+            "MIMode": "gdb",
+            "miDebuggerArgs": "-ex \"set substitute-path /proc/self/cwd/. /proc/self/cwd\"",
+            "sourceFileMap": {
+                "/proc/self/cwd": "${workspaceFolder}",
+                "/proc/self/cwd/external" : "${workspaceFolder}/bazel-${workspaceFolderBasename}/external"
+            },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+    ],
+    "inputs": [
+        {
+            "id": "bazelBinaryPath",
+            "type": "command",
+            "command": "extension.commandvariable.transform",
+            "args": {
+                "key": "selectedBazelBinaryPath",
+                "text": "${command:getBazelBinaryPath}",
+                "command": {
+                    "getBazelBinaryPath": {
+                        "command": "shellCommand.execute",
+                        "variableSubstArgs": true,
+                        "args": {
+                            "command": "bazel cquery --config=debug --output=files ${pickStringRemember:pickBazelBinary}",
+                            "useSingleResult": true,
+                            "cwd": "${workspaceFolder}"
+                        },
+                        "pickStringRemember": {
+                            "pickBazelBinary": {
+                                "description": "Choose a binary",
+                                "key": "selectedBazelBinary",
+                                "rememberTransformed": true,
+                                "options": [
+                                    {
+                                        "label": "Previous Binary",
+                                        "value": "${command:selectedBazelBinary}",
+                                        "description": "${command:selectedBazelBinary}"
+                                    },
+                                    {
+                                        "label": "Select Binary",
+                                        "value": "${command:bazelBinaries}",
+                                        "description": "NOTE: It may take some time for the selection list to be displayed"
+                                    }
+                                ],
+                                "command": {
+                                    "selectedBazelBinary": {
+                                        "command": "extension.commandvariable.transform",
+                                        "args": {
+                                            "text": "${remember:selectedBazelBinary}",
+                                            "find": "^(I don't remember|No default value has been set in config...)$",
+                                            "replace": "${command:defaultBazelBinary}",
+                                            "command": {
+                                                "defaultBazelBinary": {
+                                                    "command": "extension.commandvariable.config.expression",
+                                                    "args": {
+                                                        "configVariable": "torc.bazel",
+                                                        "expression": "content.defaultBazelBinary",
+                                                        "default": "No default value has been set in config..."
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "bazelBinaries": {
+                                        "command": "shellCommand.execute",
+                                        "args": {
+                                            "command": "jsonlint -Sf .vscode/settings.json | jq -r '.\"torc.bazel\".bazelBinaryQuickPicks[]' ; bazel --output_base=/tmp/code/bazel query 'kind(.*_binary, //...) - attr(deps, @ros_genpy//:genpy, //...) - attr(linkshared, 1, //...) - attr(generator_name, node_modules, //...)'",
+                                            "cwd": "${workspaceFolder}"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+    ]
+}
